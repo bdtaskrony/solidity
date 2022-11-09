@@ -37,20 +37,37 @@ it("Should deploy Nft Contract", async function () {
     expect(await deployed.signer.getAddress()).to.equal(owner.address);
 });
 
-it("should mint nft by owner address", async () => {
-    const [owner, otherAccount] = await ethers.getSigners();
+it("should mint nft by owner of the contract", async () => {
+    const [owner] = await ethers.getSigners();
     const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
     const tokenUri = "https://some-token.uri/";
     const myContract = await ethers.getContractAt("Nft", contractAddress);
     const transaction = await myContract.createNft(tokenUri);
-    const receipt =  await transaction.wait();
-    const transaction1 = await myContract.createNft(tokenUri+"abc");
-    const receipt1 =  await transaction1.wait();
-    console.log("trans",receipt1);
-    let contractOwnerBalances = await myContract.balanceOf(owner.address);
-    console.log("contractOwnerBalances========", await myContract.ownerOf(1));
-    
+    const receipt = await transaction.wait();
+    const tokenId = await receipt.events[0].args.tokenId;
+    const contractOwnerBalances = await myContract.balanceOf(owner.address);
+
+    expect(contractOwnerBalances).to.equal(1);
+    expect(await myContract.ownerOf(tokenId)).to.equal(owner.address);
 });
+
+it("should find the token URI", async () => {
+  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+  const tokenUri = "https://some-token.uri/";
+  const tokenId = 0;
+  const myContract = await ethers.getContractAt("Nft", contractAddress);
+  expect(await myContract.tokenURI(tokenId)).to.equal(tokenUri);
+});
+
+it("should not mint nft by other than owner of the contract", async () => {
+  const [owner,otherAccount] = await ethers.getSigners();
+  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+  const tokenUri = "https://some-token.uri/";
+  const myContract = await ethers.getContractAt("Nft", contractAddress);
+  
+  await expect(myContract.connect(otherAccount).createNft(tokenUri)).to.be.revertedWith("Ownable: caller is not the owner");
+});
+
 //   describe("Deployment", function () {
 //     it("Should set the right unlockTime", async function () {
 //       const { lock, unlockTime } = await loadFixture(deployOneYearLockFixture);
