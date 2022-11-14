@@ -29,6 +29,20 @@ describe("NFT", function () {
     expect(await myContract.ownerOf(tokenId)).to.equal(owner.address);
   });
 
+  it("should mint another new nft by owner of the contract", async () => {
+    const [owner] = await ethers.getSigners();
+    const nftContract = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    const tokenUri = "https://some-token.uri/new";
+    const myContract = await ethers.getContractAt("Nft", nftContract);
+    const transaction = await myContract.createNft(tokenUri);
+    const receipt = await transaction.wait();
+    const tokenId = await receipt.events[0].args.tokenId;
+    const contractOwnerBalances = await myContract.balanceOf(owner.address);
+
+    expect(contractOwnerBalances).to.equal(2);
+    expect(await myContract.ownerOf(tokenId)).to.equal(owner.address);
+  });
+
   it("should find the token URI", async () => {
     const nftContract = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
     const tokenUri = "https://some-token.uri/";
@@ -51,11 +65,17 @@ describe("NFT", function () {
   it("should approve market for transfer", async () => {
     const nftContract = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
     const marketContract = "0x71C95911E9a5D330f4D621842EC243EE1343292e";
-    const tokenId = 0;
+    let tokenId = 0;
     const myContract = await ethers.getContractAt("Nft", nftContract);
+    //aprove for token id 0
     await myContract.approve(marketContract, tokenId);
     const getApprove = await myContract.getApproved(tokenId);
     expect(getApprove).to.equal(marketContract);
+    //aprove for token id 1
+    tokenId++;
+    await myContract.approve(marketContract, tokenId);
+    const getApproveNewToken = await myContract.getApproved(tokenId);
+    expect(getApproveNewToken).to.equal(marketContract);
   });
 
   //   describe("Deployment", function () {

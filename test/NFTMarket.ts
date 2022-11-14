@@ -26,18 +26,29 @@ describe("NFT Market", function () {
     const marketContract = "0x71C95911E9a5D330f4D621842EC243EE1343292e";
     const nftContract = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
     const tokenId = 0;
-    const price = 2;
+    const price = 2.5;
+    const listingId = 0;
     const getMarketContract = await ethers.getContractAt(
       "NFTMarket",
       marketContract
     );
+    //listing token id 0
+    let ethersToWei = ethers.utils.parseUnits(price.toString(), "ether");
+    console.log("ethersToWei", ethersToWei.toString());
 
     const transaction = await getMarketContract
       .connect(ownerofNft)
-      .listNft(nftContract, tokenId, price);
+      .listNft(nftContract, tokenId, ethersToWei);
     const receipt = await transaction.wait();
-    const getListing = await getMarketContract.getListing(0);
-    console.log("getListing", getListing);
+    //listing token id 1
+    const newListing = await getMarketContract
+      .connect(ownerofNft)
+      .listNft(nftContract, 1, ethersToWei);
+    await newListing.wait();
+    // const getListing = await getMarketContract.getListing(listingId);
+    // console.log("getListing", getListing);
+    const getListingsArray = await getMarketContract.getAllListing();
+    console.log("getListingsArray", getListingsArray);
 
     //console.log("event", event(receipt.events).args);
 

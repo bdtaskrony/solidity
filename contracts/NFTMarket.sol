@@ -60,4 +60,13 @@ contract NFTMarket {
     {
         return _listings[_listingId];
     }
+
+    function getAllListing() public view returns (Listing[] memory) {
+        Listing[] memory getAll = new Listing[](listingId);
+        for (uint256 i = 0; i < listingId; i++) {
+            getAll[i] = _listings[i];
+        }
+
+        return getAll;
+    }
 }
