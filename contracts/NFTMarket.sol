@@ -11,6 +11,7 @@ contract NFTMarket {
     }
 
     struct Listing {
+        uint256 listingId;
         Status status;
         address seller;
         address contractAddress;
@@ -26,6 +27,14 @@ contract NFTMarket {
         uint256 price
     );
 
+    event Sale(
+        uint256 listingId,
+        address buyer,
+        address contractAddress,
+        uint256 tokenId,
+        uint256 price
+    );
+
     uint256 private listingId = 0;
     mapping(uint256 => Listing) private _listings;
 
@@ -34,7 +43,6 @@ contract NFTMarket {
         uint256 tokenId,
         uint256 price
     ) external {
-        console.log("address(this)", address(this));
         IERC721(contractAddress).transferFrom(
             msg.sender,
             address(this),
@@ -42,6 +50,7 @@ contract NFTMarket {
         );
 
         Listing memory listing = Listing(
+            listingId,
             Status.Active,
             msg.sender,
             contractAddress,
@@ -68,5 +77,29 @@ contract NFTMarket {
         }
 
         return getAll;
+    }
+
+    function buyNFT(uint256 _listingId) external payable {
+        Listing storage listing = _listings[_listingId];
+        require(msg.sender != listing.seller, "seller and buyer can not same");
+        require(
+            listing.status == Status.Active,
+            "Listing status is not active"
+        );
+        require(msg.value >= listing.price, "Insufficient Price");
+        listing.status = Status.Sold;
+        IERC721(listing.contractAddress).transferFrom(
+            address(this),
+            msg.sender,
+            listing.tokenId
+        );
+        payable(listing.seller).transfer(listing.price);
+        emit Sale(
+            _listingId,
+            msg.sender,
+            listing.contractAddress,
+            listing.tokenId,
+            listing.price
+        );
     }
 }

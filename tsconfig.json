@@ -1,4 +1,4 @@
 {
-    "include": ["./test", "./src", "./scripts"],//only the "scripts" part.
-    "files": ["./hardhat.config.ts"]
+  "include": ["./test", "./src", "./scripts"], //only the "scripts" part.
+  "files": ["./hardhat.config.ts"]
 }

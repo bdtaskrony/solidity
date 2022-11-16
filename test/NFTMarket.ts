@@ -1,7 +1,10 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import variables from "../variables";
 
-describe("NFT Market", function () {
+describe("NFT Market", async () => {
+  const nftContract = variables.nft_contract_address;
+  const marketContract = variables.nft_market_contract_address;
   // const ownerBal = await ethers.provider.getBalance(owner.address);
   const event = (emiterArray = []) => {
     for (let i = 0; i < emiterArray.length; i++) {
@@ -12,8 +15,7 @@ describe("NFT Market", function () {
     }
   };
   it("Should deploy Nft Market Contract", async function () {
-    const [nftOwner, marketOwner] = await ethers.getSigners();
-
+    const [ownerofNft, marketOwner] = await ethers.getSigners();
     const market = await ethers.getContractFactory("NFTMarket");
     const marketDeploy = await market.connect(marketOwner).deploy();
     const deployed = await marketDeploy.connect(marketOwner).deployed();
@@ -22,9 +24,7 @@ describe("NFT Market", function () {
   });
 
   it("should listed nft in the marketplace", async () => {
-    const [ownerofNft, otherAccount] = await ethers.getSigners();
-    const marketContract = "0x71C95911E9a5D330f4D621842EC243EE1343292e";
-    const nftContract = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    const [ownerofNft, marketOwner] = await ethers.getSigners();
     const tokenId = 0;
     const price = 2.5;
     const listingId = 0;
@@ -45,36 +45,12 @@ describe("NFT Market", function () {
       .connect(ownerofNft)
       .listNft(nftContract, 1, ethersToWei);
     await newListing.wait();
-    // const getListing = await getMarketContract.getListing(listingId);
-    // console.log("getListing", getListing);
-    const getListingsArray = await getMarketContract.getAllListing();
-    console.log("getListingsArray", getListingsArray);
+    const getListing = await getMarketContract.getListing(listingId);
+    expect(getListing.listingId).to.equal(listingId);
+    //console.log("getListing", getListing);
 
     //console.log("event", event(receipt.events).args);
 
     //console.log("receipt", await receipt.events);
-
-    // const tokenId = await receipt.events[0].args.tokenId;
-    // const contractOwnerBalances = await myContract.balanceOf(owner.address);
-
-    // expect(contractOwnerBalances).to.equal(1);
-    // expect(await myContract.ownerOf(tokenId)).to.equal(owner.address);
   });
-
-  // it("should find the token URI", async () => {
-  //   const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-  //   const tokenUri = "https://some-token.uri/";
-  //   const tokenId = 0;
-  //   const myContract = await ethers.getContractAt("Nft", contractAddress);
-  //   expect(await myContract.tokenURI(tokenId)).to.equal(tokenUri);
-  // });
-
-  // it("should not mint nft by other than owner of the contract", async () => {
-  //   const [owner,otherAccount] = await ethers.getSigners();
-  //   const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-  //   const tokenUri = "https://some-token.uri/";
-  //   const myContract = await ethers.getContractAt("Nft", contractAddress);
-
-  //   await expect(myContract.connect(otherAccount).createNft(tokenUri)).to.be.revertedWith("Ownable: caller is not the owner");
-  // });
 });
