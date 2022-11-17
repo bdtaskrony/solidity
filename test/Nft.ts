@@ -14,8 +14,6 @@ describe("NFT", async () => {
     const Nft = await ethers.getContractFactory("Nft");
     const nftDeploy = await Nft.deploy(nftName, nftSymbol);
     const deployed = await nftDeploy.deployed();
-    console.log("owner Address", owner.address);
-    console.log("contract Address", deployed.address);
 
     expect(await deployed.name()).to.equal(nftName);
     expect(await deployed.symbol()).to.equal(nftSymbol);
@@ -42,7 +40,6 @@ describe("NFT", async () => {
     const transaction = await myContract.createNft(tokenUri);
     const receipt = await transaction.wait();
     const tokenId = await receipt.events[0].args.tokenId;
-    console.log("owner.address", owner.address);
 
     const contractOwnerBalances = await myContract.balanceOf(owner.address);
 

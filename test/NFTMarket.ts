@@ -26,7 +26,7 @@ describe("NFT Market", async () => {
   it("should listed nft in the marketplace", async () => {
     const [ownerofNft, marketOwner] = await ethers.getSigners();
     const tokenId = 0;
-    const price = 2.5;
+    const price = 0.5;
     const listingId = 0;
     const getMarketContract = await ethers.getContractAt(
       "NFTMarket",
@@ -34,7 +34,6 @@ describe("NFT Market", async () => {
     );
     //listing token id 0
     let ethersToWei = ethers.utils.parseUnits(price.toString(), "ether");
-    console.log("ethersToWei", ethersToWei.toString());
 
     const transaction = await getMarketContract
       .connect(ownerofNft)
@@ -47,7 +46,55 @@ describe("NFT Market", async () => {
     await newListing.wait();
     const getListing = await getMarketContract.getListing(listingId);
     expect(getListing.listingId).to.equal(listingId);
-    //console.log("getListing", getListing);
+    //console.log("event", event(receipt.events).args);
+
+    //console.log("receipt", await receipt.events);
+  });
+
+  it("should buy nft from listed", async () => {
+    const [ownerofNft, marketOwner, buyerAddress] = await ethers.getSigners();
+    const listingId = 0;
+    const tokenId = 0;
+
+    const getMarketContract = await ethers.getContractAt(
+      "NFTMarket",
+      marketContract
+    );
+    //lising id 0 buy
+    let ethersToWei = ethers.utils.parseUnits("0.5", "ether");
+    const transaction = await getMarketContract
+      .connect(buyerAddress)
+      .buyNFT(listingId, { value: ethersToWei });
+    const receipt = await transaction.wait();
+    //console.log("receipt", receipt);
+    const getNftContract = await ethers.getContractAt("Nft", nftContract);
+    expect(await getNftContract.ownerOf(tokenId)).to.equal(
+      buyerAddress.address
+    );
+    //console.log("event", event(receipt.events).args);
+
+    //console.log("receipt", await receipt.events);
+  });
+  it("should cancelled nft from listing", async () => {
+    const [ownerofNft, marketOwner, buyerAddress] = await ethers.getSigners();
+    const listingId = 1;
+    const tokenId = 1;
+
+    const getMarketContract = await ethers.getContractAt(
+      "NFTMarket",
+      marketContract
+    );
+    //lising id 0 buy
+    let ethersToWei = ethers.utils.parseUnits("0.5", "ether");
+    const transaction = await getMarketContract
+      .connect(ownerofNft)
+      .cancelledListing(listingId);
+    const receipt = await transaction.wait();
+    //console.log("receipt", receipt);
+    const getList = await getMarketContract.getListing(listingId);
+    expect(getList.status).to.equal(2);
+    const getNftContract = await ethers.getContractAt("Nft", nftContract);
+    expect(await getNftContract.ownerOf(tokenId)).to.equal(ownerofNft.address);
 
     //console.log("event", event(receipt.events).args);
 

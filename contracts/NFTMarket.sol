@@ -35,6 +35,8 @@ contract NFTMarket {
         uint256 price
     );
 
+    event Cancelled(uint256 listingId, address seller);
+
     uint256 private listingId = 0;
     mapping(uint256 => Listing) private _listings;
 
@@ -101,5 +103,18 @@ contract NFTMarket {
             listing.tokenId,
             listing.price
         );
+    }
+
+    function cancelledListing(uint256 _listingId) public {
+        Listing storage listing = _listings[_listingId];
+        require(listing.seller == msg.sender, "Only seller can be cancelled");
+        require(listing.status == Status.Active, "This Nft is not active");
+        listing.status = Status.Cancelled;
+        IERC721(listing.contractAddress).transferFrom(
+            address(this),
+            listing.seller,
+            listing.tokenId
+        );
+        emit Cancelled(_listingId, listing.seller);
     }
 }
